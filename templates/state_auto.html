@@ -1,0 +1,22 @@
+<html>
+  <head>
+    <meta http-equiv="refresh" content="5" >
+    <title>Registered APIS</title>
+  </head>
+  <body>
+    <h1>Registered API keys:</h1>
+    <table border="1">
+        <tr><td><p>Cisco Stealthwatch API state:</td><td> {{CSW}} </td></p></tr>
+        <tr><td><p>Trend Micro API state:</td><td> {{TM}} </td></p></tr>
+        <tr><td><p>Cisco AMP for Endpoint API state: </td><td> {{AMP4E}}</p></td></p></tr>
+        <tr><td><p>Cisco Webex Teams API state: </td><td> {{Webex}}</p></td></p></tr>
+    </table>
+    <p>Events</p>
+    {% autoescape false %}
+         {{MSG}}
+    {% endautoescape %}
+    <br>
+    <a href="../stop">Stop the Application</a>
+    <p></p>
+  </body>
+</html>
