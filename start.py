@@ -25,12 +25,14 @@ with open("stop.txt" , "w") as fs0:
 fs0.close()   
 
 def create_checksum(http_method, raw_url, headers, request_body):
+    """Creates a base64_string from the provided parameters"""
     string_to_hash = http_method.upper() + '|' + raw_url.lower() + '|' + headers + '|' + request_body    
     base64_string = base64.b64encode(hashlib.sha256(str.encode(string_to_hash)).digest()).decode('utf-8')
     return base64_string    
     
 def create_jwt_token(appication_id, api_key, http_method, raw_url, headers, request_body,
                      iat=time.time(), algorithm='HS256', version='V1'):
+    """Returns a jwt token with the paramteres"""
     checksum = create_checksum(http_method, raw_url, headers, request_body)
     payload = {'appid': appication_id,
                'iat': iat,
@@ -40,6 +42,13 @@ def create_jwt_token(appication_id, api_key, http_method, raw_url, headers, requ
     return token
 
 def TM_search(ininfo):
+    """
+    Searches for IP address on Trend Micro server
+
+    ininfo: ip address to search;
+    Reads config from tm_information.cfg;
+    Connects to API, searches for ip address and returns the response
+    """
     config.read("tm_information.cfg") 
     if config["TrendMicro"]["PORTAL_URL"] != '':
         use_url_base = 'https://' + config["TrendMicro"]["PORTAL_URL"] +':443'
@@ -66,6 +75,7 @@ def TM_search(ininfo):
             results = json.loads(r.content)['result_content']
             #print(results)        
             for result in results:
+                #TODO: Itt csak az első találatot nézi
                 entity = result['entity_id']
                 #print(entity)
                 return entity
@@ -86,6 +96,13 @@ def TM_search(ininfo):
         return 'None'
 
 def AMP4E_search(ipv4):
+    """
+    Searches for IP address on Cisco AMP for Endpoint server
+
+    ipv4: ipv4 address;
+    Reads config from amp4e_information.cfg;
+    Connects to API, searches for ip address and returns the response
+    """
     config.read("amp4e_information.cfg")
     host=config["AMP4E"]["PORTAL_URL"]
     client_id=config["AMP4E"]["API_CID"]
@@ -110,17 +127,18 @@ def AMP4E_search(ipv4):
             result = response.json()['data']
             #print(ipv4)
             for ip in result:
+                #TODO: Itt csak az utolsó találatot nézi
                 #print((ip['connector_guid']))
                 connector_guid = ip['connector_guid']
             
+            with open("amp4e_status.log", "w") as f1:
+                f1.write('%s' % AMP4E_status)
+            f1.close()
+
             if connector_guid != "":
                 return connector_guid
             else:
                 return 'None'
-
-            with open("amp4e_status.log", "w") as f1:
-                f1.write('%s' % AMP4E_status)
-            f1.close()
         else:
             AMP4E_status = str(response.status_code) + ' Error'
             with open("amp4e_status.log", "w") as f1:
@@ -135,6 +153,13 @@ def AMP4E_search(ipv4):
         return 'None'
 
 def swcloud_api():
+    """
+    Gets Alerts from server
+
+    Reads configuration from sw_information.cfg;
+    Connects to API with ApiUser and ApiKey;
+    Response 200: Returns http response body (alerts)
+    """
     config.read("sw_information.cfg")
     if config["StealthwatchCloud"]["PORTAL_URL"] != '':
         url = "https://" + config["StealthwatchCloud"]["PORTAL_URL"] + "/api/v3/alerts/alert/"
@@ -167,6 +192,7 @@ def swcloud_api():
         return 'Stealthwatch API not provided'        
 
 def send_message(message):
+    """wirtes message parameter in "message.txt"""
     with open("message.txt","a") as fm1:
         fm1.write('%s\n' % message)
     fm1.close()
@@ -204,6 +230,7 @@ def send_message(message):
         return
     
 def search_host(ipv4):
+    """Categorises ipv4 addess based on API searches"""
     if str(TM_search(ipv4)) != 'None':
         return 'TM'
     elif AMP4E_search(ipv4) != 'None':
@@ -214,6 +241,7 @@ def search_host(ipv4):
 
 
 def TM_isolate(identity, ipv4):
+    """Posts identity and ipv4 address on the server through the API"""
     config.read("tm_information.cfg") 
     if config["TrendMicro"]["PORTAL_URL"] != '':
         use_url_base = 'https://' + config["TrendMicro"]["PORTAL_URL"] +':443'
@@ -241,6 +269,7 @@ def TM_isolate(identity, ipv4):
             results = json.loads(r.content)['result_content']
             #print(results)        
             for result in results:
+                #TODO: Itt csak az első találatot nézi
                 entity = result['entity_id']
                 #print(entity)
                 return entity
@@ -260,6 +289,7 @@ def TM_isolate(identity, ipv4):
         return 'None'
 
 def AMP4E_isolate(identitiy):
+    """Posts identity on the server through the API"""
     config.read("amp4e_information.cfg")
     host=config["AMP4E"]["PORTAL_URL"]
     client_id=config["AMP4E"]["API_CID"]
@@ -299,15 +329,17 @@ def wait_for_user_request():
 ipv4 = ''
 handled = []
 while True:
-    with open("automate.txt" , "r") as fauto:
-        automate = fauto.read()
-    fauto.close()
+    #TODO: Ez nem volt felhasználva sehol
+    #with open("automate.txt" , "r") as fauto:
+    #    automate = fauto.read()
+    #fauto.close()
     swcloud_datas = swcloud_api()
     if swcloud_datas != 'Stealthwatch API not provided':
         for alert in swcloud_datas:
             text = alert['text']
             ips = alert['source_info']['ips']
             for ip in ips:
+                #TODO: Itt csak az utolsó találatot nézi
                 ipv4 = ip
             proc = str(text)  + ' , ' + str(ip)
             exp = re.search('^User', proc)

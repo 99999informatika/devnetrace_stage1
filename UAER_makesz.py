@@ -14,6 +14,11 @@ app = Flask(__name__)
 
 @app.route('/')
 def register():
+    """
+    If proc is not started yet: creates log files, cfgfiles, opens register.html;
+    If proc is started in auto mode: redirects to state_auto
+    If proc is started in manual mode: redirects to state_manual
+    """
     try:
         with open("start.txt" , "r") as fs0:
             proc_state = fs0.read()
@@ -49,6 +54,7 @@ def register():
 
 @app.route('/', methods=['POST'])
 def form_post():
+    """Writes form information in cfg files, redirects to integration"""
     #gathering informations from form
     vCSW_URL = request.form['CSW_URL']
     vCSW_USER = request.form['CSW_USER']
@@ -94,7 +100,7 @@ def form_post():
 
 @app.route('/integration/')
 def integration():
-
+    """Reads config files, if proc is not started then starts it, opens registered.html"""
     f1 = open("sw_information.cfg", "r")
     pCSW = f1.read()
     f1.close()
@@ -122,6 +128,7 @@ def integration():
 
 @app.route('/state_auto/')
 def auto():
+    """Reads log files, opens state_auto.html"""
     auto_operation = 'yes'
     with open("automate.txt" , "w") as fa1:
         fa1.write(auto_operation)
@@ -152,7 +159,7 @@ def auto():
 
 @app.route('/state_manual/')
 def manual():
-
+    """Reads log files, opens state_manual.html"""
     #auto_operation = 'no'
     auto_operation = 'yes'
     with open("automate.txt" , "w") as fa1:
@@ -184,6 +191,7 @@ def manual():
 
 @app.route('/stop/')
 def stop():
+    """Stops the process and redirects to root"""
     with open("stop.txt", "w") as fso1:
         fso1.write("yes")
     fso1.close()
