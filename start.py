@@ -47,7 +47,7 @@ def TM_search(ininfo):
 
     ininfo: ip address to search;
     Reads config from tm_information.cfg;
-    Connects to API, searches for ip address and returns the response
+    Connects to API, returns security agent with matchig ip
     """
     config.read("tm_information.cfg") 
     if config["TrendMicro"]["PORTAL_URL"] != '':
@@ -75,7 +75,7 @@ def TM_search(ininfo):
             results = json.loads(r.content)['result_content']
             #print(results)        
             for result in results:
-                #TODO: Itt csak az első találatot nézi
+                #Processes only the first result (should only be one)
                 entity = result['entity_id']
                 #print(entity)
                 return entity
@@ -101,7 +101,7 @@ def AMP4E_search(ipv4):
 
     ipv4: ipv4 address;
     Reads config from amp4e_information.cfg;
-    Connects to API, searches for ip address and returns the response
+    Connects to API, returns security agent with matchig ip
     """
     config.read("amp4e_information.cfg")
     host=config["AMP4E"]["PORTAL_URL"]
@@ -127,7 +127,7 @@ def AMP4E_search(ipv4):
             result = response.json()['data']
             #print(ipv4)
             for ip in result:
-                #TODO: Itt csak az utolsó találatot nézi
+                #Processes only the last result (should only be one)
                 #print((ip['connector_guid']))
                 connector_guid = ip['connector_guid']
             
@@ -241,7 +241,7 @@ def search_host(ipv4):
 
 
 def TM_isolate(identity, ipv4):
-    """Posts identity and ipv4 address on the server through the API"""
+    """Isolates security agent on Trend Micro based on parameters"""
     config.read("tm_information.cfg") 
     if config["TrendMicro"]["PORTAL_URL"] != '':
         use_url_base = 'https://' + config["TrendMicro"]["PORTAL_URL"] +':443'
@@ -269,7 +269,7 @@ def TM_isolate(identity, ipv4):
             results = json.loads(r.content)['result_content']
             #print(results)        
             for result in results:
-                #TODO: Itt csak az első találatot nézi
+                #Processes only the first result (should only be one)
                 entity = result['entity_id']
                 #print(entity)
                 return entity
@@ -289,7 +289,7 @@ def TM_isolate(identity, ipv4):
         return 'None'
 
 def AMP4E_isolate(identitiy):
-    """Posts identity on the server through the API"""
+    """Isolates security agent on Cisco AMP for Endpoint based on parameters"""
     config.read("amp4e_information.cfg")
     host=config["AMP4E"]["PORTAL_URL"]
     client_id=config["AMP4E"]["API_CID"]
@@ -339,7 +339,7 @@ while True:
             text = alert['text']
             ips = alert['source_info']['ips']
             for ip in ips:
-                #TODO: Itt csak az utolsó találatot nézi
+                #Processes only the last result (should only be one)
                 ipv4 = ip
             proc = str(text)  + ' , ' + str(ip)
             exp = re.search('^User', proc)
